@@ -5,6 +5,11 @@ import yt_dlp
 import os
 from dotenv import load_dotenv
 
+import os
+
+for key in os.environ:
+    print("VAR:", key)
+    
 load_dotenv()
 
 intents = discord.Intents.default()
