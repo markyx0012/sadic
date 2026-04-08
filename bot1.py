@@ -85,7 +85,7 @@ async def on_ready():
 
 import os
 
-token = os.getenv("DISCORD_TOKEN")
+token = os.getenv["DISCORD_TOKEN"]
 
 if not token:
     raise Exception("No se encontró el token")
