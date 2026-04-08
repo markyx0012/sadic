@@ -13,14 +13,18 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f"Bot conectado como {bot.user}")
 
+ try:   
     node = wavelink.Node(
-        uri="https://lavalink-v4-idle.up.railway.app",  # nodo gratis
-        password="youshallnotpass"
-    )
+    uri="http://lava.link:80",
+    password="anything"
+)
 
     await wavelink.Pool.connect(client=bot, nodes=[node])
     print("Conectado a Lavalink")
 
+    except Exception as e:
+        print("❌ Error conectando a Lavalink:", e)
+        
 # JOIN
 @bot.command()
 async def join(ctx):
