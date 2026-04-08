@@ -1,108 +1,78 @@
 import discord
 from discord.ext import commands
+import wavelink
 import os
-import yt_dlp
 
-# Intents
 intents = discord.Intents.default()
 intents.message_content = True
-intents.voice_states = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Opciones mejoradas de yt-dlp (ANTI BLOQUEO)
-ytdl_format_options = {
-    'format': 'bestaudio/best',
-    'quiet': True,
-    'noplaylist': True,
-    'extract_flat': False,
-    'source_address': '0.0.0.0',
-    'nocheckcertificate': True,
-    'ignoreerrors': True
-}
-
-ffmpeg_options = {
-    'options': '-vn'
-}
-
-ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
-
+# Conectar a Lavalink
 @bot.event
 async def on_ready():
-    print(f"✅ Bot conectado como {bot.user}")
+    print(f"Bot conectado como {bot.user}")
+
+    node = wavelink.Node(
+        uri="https://lavalink-v4-idle.up.railway.app",  # nodo gratis
+        password="youshallnotpass"
+    )
+
+    await wavelink.Pool.connect(client=bot, nodes=[node])
+    print("Conectado a Lavalink")
 
 # JOIN
 @bot.command()
 async def join(ctx):
     if ctx.author.voice:
         channel = ctx.author.voice.channel
-        if ctx.voice_client:
-            await ctx.voice_client.move_to(channel)
-        else:
-            await channel.connect()
-        await ctx.send("Me uní al canal ✅")
+        await channel.connect(cls=wavelink.Player)
+        await ctx.send("Conectado al canal ✅")
     else:
-        await ctx.send("Tenés que estar en un canal de voz ❌")
+        await ctx.send("Entrá a un canal de voz ❌")
 
-# PLAY (FIX YOUTUBE)
+# PLAY
 @bot.command()
-async def play(ctx, url):
+async def play(ctx, *, search: str):
     if not ctx.author.voice:
-        await ctx.send("Tenés que estar en un canal de voz ❌")
+        await ctx.send("Entrá a un canal de voz ❌")
         return
 
-    channel = ctx.author.voice.channel
+    vc: wavelink.Player
 
-    if ctx.voice_client is None:
-        await channel.connect()
+    if not ctx.voice_client:
+        vc = await ctx.author.voice.channel.connect(cls=wavelink.Player)
+    else:
+        vc = ctx.voice_client
 
-    vc = ctx.voice_client
+    tracks = await wavelink.Playable.search(search)
 
-    try:
-        info = ytdl.extract_info(url, download=False)
+    if not tracks:
+        await ctx.send("No encontré nada ❌")
+        return
 
-        if info is None:
-            await ctx.send("YouTube está bloqueando el video ❌")
-            return
+    track = tracks[0]
 
-        if 'entries' in info:
-            info = info['entries'][0]
-
-        url2 = info.get('url') or info.get('webpage_url')
-
-        if not url2:
-            await ctx.send("No se encontró el audio ❌")
-            return
-
-        source = discord.FFmpegPCMAudio(url2, **ffmpeg_options)
-
-        vc.stop()
-        vc.play(source)
-
-        await ctx.send(f"Reproduciendo: {info.get('title', 'audio')} 🎶")
-
-    except Exception as e:
-        await ctx.send("Error al reproducir ❌")
-        print("ERROR:", e)
+    await vc.play(track)
+    await ctx.send(f"Reproduciendo 🎶: {track.title}")
 
 # STOP
 @bot.command()
 async def stop(ctx):
     if ctx.voice_client:
-        ctx.voice_client.stop()
-        await ctx.send("Música detenida ⏹")
+        await ctx.voice_client.stop()
+        await ctx.send("Detenido ⏹")
     else:
-        await ctx.send("No estoy reproduciendo nada ❌")
+        await ctx.send("Nada reproduciendo ❌")
 
 # LEAVE
 @bot.command()
 async def leave(ctx):
     if ctx.voice_client:
         await ctx.voice_client.disconnect()
-        await ctx.send("Salí del canal 👋")
+        await ctx.send("Me fui 👋")
     else:
-        await ctx.send("No estoy en ningún canal ❌")
+        await ctx.send("No estoy en VC ❌")
 
 # TOKEN
-token = os.environ["DISCORD_TOKEN"]
-bot.run(token)
+bot.run(os.environ["DISCORD_TOKEN"])
