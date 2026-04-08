@@ -83,4 +83,11 @@ async def on_ready():
     # asyncio.create_task(play_loop())
 
 
-bot.run(os.getenv("DISCORD_TOKEN"))
+import os
+
+token = os.getenv("DISCORD_TOKEN")
+
+if not token:
+    raise Exception("No se encontró el token")
+
+bot.run(token)
