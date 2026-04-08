@@ -12,8 +12,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     print(f"Bot conectado como {bot.user}")
-
- try:   
+   
     node = wavelink.Node(
     uri="http://lava.link:80",
     password="anything"
