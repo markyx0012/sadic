@@ -10,10 +10,15 @@ intents.voice_states = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Opciones de yt-dlp
+# Opciones mejoradas de yt-dlp (ANTI BLOQUEO)
 ytdl_format_options = {
     'format': 'bestaudio/best',
-    'quiet': True
+    'quiet': True,
+    'noplaylist': True,
+    'extract_flat': False,
+    'source_address': '0.0.0.0',
+    'nocheckcertificate': True,
+    'ignoreerrors': True
 }
 
 ffmpeg_options = {
@@ -26,7 +31,7 @@ ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 async def on_ready():
     print(f"✅ Bot conectado como {bot.user}")
 
-# Unirse al canal
+# JOIN
 @bot.command()
 async def join(ctx):
     if ctx.author.voice:
@@ -39,7 +44,7 @@ async def join(ctx):
     else:
         await ctx.send("Tenés que estar en un canal de voz ❌")
 
-# Reproducir música
+# PLAY (FIX YOUTUBE)
 @bot.command()
 async def play(ctx, url):
     if not ctx.author.voice:
@@ -55,7 +60,13 @@ async def play(ctx, url):
 
     try:
         with ytdl.extract_info(url, download=False) as info:
+
+            # Si es playlist, toma el primer video
+            if 'entries' in info:
+                info = info['entries'][0]
+
             url2 = info['url']
+
             source = discord.FFmpegPCMAudio(url2, **ffmpeg_options)
 
             vc.stop()
@@ -65,8 +76,9 @@ async def play(ctx, url):
 
     except Exception as e:
         await ctx.send(f"Error al reproducir ❌: {e}")
+        print(e)
 
-# Detener música
+# STOP
 @bot.command()
 async def stop(ctx):
     if ctx.voice_client:
@@ -75,7 +87,7 @@ async def stop(ctx):
     else:
         await ctx.send("No estoy reproduciendo nada ❌")
 
-# Salir del canal
+# LEAVE
 @bot.command()
 async def leave(ctx):
     if ctx.voice_client:
@@ -84,6 +96,6 @@ async def leave(ctx):
     else:
         await ctx.send("No estoy en ningún canal ❌")
 
-# Token
+# TOKEN
 token = os.environ["DISCORD_TOKEN"]
 bot.run(token)
