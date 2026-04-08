@@ -59,24 +59,32 @@ async def play(ctx, url):
     vc = ctx.voice_client
 
     try:
-        with ytdl.extract_info(url, download=False) as info:
+        info = ytdl.extract_info(url, download=False)
 
-            # Si es playlist, toma el primer video
-            if 'entries' in info:
-                info = info['entries'][0]
+        if info is None:
+            await ctx.send("No se pudo obtener el audio ❌")
+            return
 
-            url2 = info['url']
+        # Si es playlist
+        if 'entries' in info:
+            info = info['entries'][0]
 
-            source = discord.FFmpegPCMAudio(url2, **ffmpeg_options)
+        url2 = info.get('url')
 
-            vc.stop()
-            vc.play(source)
+        if not url2:
+            await ctx.send("No se encontró el audio ❌")
+            return
+
+        source = discord.FFmpegPCMAudio(url2, **ffmpeg_options)
+
+        vc.stop()
+        vc.play(source)
 
         await ctx.send("Reproduciendo 🎶")
 
     except Exception as e:
-        await ctx.send(f"Error al reproducir ❌: {e}")
-        print(e)
+        await ctx.send(f"Error al reproducir ❌")
+        print("ERROR:", e)
 
 # STOP
 @bot.command()
