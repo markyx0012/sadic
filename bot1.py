@@ -90,4 +90,8 @@ token = os.getenv("DISCORD_TOKEN")
 if not token:
     raise Exception("No se encontró el token")
 
+import os
+
+print("TOKEN:", os.getenv("DISCORD_TOKEN"))
+
 bot.run(token)
