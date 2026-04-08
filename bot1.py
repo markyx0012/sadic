@@ -12,14 +12,15 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     print(f"Bot conectado como {bot.user}")
-   
-    node = wavelink.Node(
-    uri="http://lava.link:80",
-    password="anything"
-)
 
-    await wavelink.Pool.connect(client=bot, nodes=[node])
-    print("Conectado a Lavalink")
+    try:
+        node = wavelink.Node(
+            uri="http://lava.link:80",
+            password="anything"
+        )
+
+        await wavelink.Pool.connect(client=bot, nodes=[node])
+        print("✅ Conectado a Lavalink")
 
     except Exception as e:
         print("❌ Error conectando a Lavalink:", e)
