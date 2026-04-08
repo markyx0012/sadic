@@ -1,4 +1,3 @@
 py-cord
-yt-dlp
+wavelink
 python-dotenv
-pynacl==1.5.0
