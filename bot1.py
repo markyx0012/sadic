@@ -62,14 +62,13 @@ async def play(ctx, url):
         info = ytdl.extract_info(url, download=False)
 
         if info is None:
-            await ctx.send("No se pudo obtener el audio ❌")
+            await ctx.send("YouTube está bloqueando el video ❌")
             return
 
-        # Si es playlist
         if 'entries' in info:
             info = info['entries'][0]
 
-        url2 = info.get('url')
+        url2 = info.get('url') or info.get('webpage_url')
 
         if not url2:
             await ctx.send("No se encontró el audio ❌")
@@ -80,10 +79,10 @@ async def play(ctx, url):
         vc.stop()
         vc.play(source)
 
-        await ctx.send("Reproduciendo 🎶")
+        await ctx.send(f"Reproduciendo: {info.get('title', 'audio')} 🎶")
 
     except Exception as e:
-        await ctx.send(f"Error al reproducir ❌")
+        await ctx.send("Error al reproducir ❌")
         print("ERROR:", e)
 
 # STOP
